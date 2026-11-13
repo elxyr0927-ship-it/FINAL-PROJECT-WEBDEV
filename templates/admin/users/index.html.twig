@@ -1,0 +1,114 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}User accounts | YOCOR Express{% endblock %}
+
+{% block body %}
+    <div class="page-heading d-flex flex-column flex-sm-row align-items-sm-end justify-content-between gap-3">
+        <div>
+            <h1 class="brand-text mb-1">User accounts</h1>
+            <p class="text-secondary mb-0">Manage administrator and staff access.</p>
+        </div>
+        <a class="btn btn-brand" href="{{ path('admin_users_new') }}" data-bs-toggle="modal" data-bs-target="#createUserModal"><i class="fa-solid fa-user-plus me-2" aria-hidden="true"></i>Create account</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-center" role="search">
+                <div class="col-12 col-lg-5">
+                    <label class="visually-hidden" for="user-search">Search accounts</label>
+                    <input id="user-search" class="form-control" type="search" name="q" value="{{ search }}" placeholder="Name, username, or email">
+                </div>
+                <div class="col-6 col-lg-3">
+                    <label class="visually-hidden" for="user-role">Filter by role</label>
+                    <select id="user-role" name="role" class="form-select">
+                        <option value="">All roles</option>
+                        <option value="ROLE_ADMIN" {{ role == 'ROLE_ADMIN' ? 'selected' : '' }}>Administrator</option>
+                        <option value="ROLE_STAFF" {{ role == 'ROLE_STAFF' ? 'selected' : '' }}>Staff</option>
+                    </select>
+                </div>
+                <div class="col-auto"><button class="btn btn-primary">Search</button></div>
+                {% if search or role %}
+                    <div class="col-auto"><a class="btn btn-link" href="{{ path('admin_users_index') }}">Clear</a></div>
+                {% endif %}
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <caption class="visually-hidden">User accounts</caption>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Date created</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for account in users %}
+                        <tr>
+                            <td>{{ account.name }}</td>
+                            <td>{{ account.username }}</td>
+                            <td>{{ account.email }}</td>
+                            <td>{{ 'ROLE_ADMIN' in account.roles ? 'Administrator' : 'Staff' }}</td>
+                            <td><span class="badge text-bg-{{ account.isActive ? 'success' : 'secondary' }}">{{ account.isActive ? 'Active' : 'Disabled' }}</span></td>
+                            <td class="text-nowrap">{{ account.createdAt|date('Y-m-d') }}</td>
+                            <td class="text-end text-nowrap">
+                                {% if account.id != app.user.id %}
+                                    <form class="d-inline" method="post" action="{{ path('admin_users_toggle_active', {id: account.id}) }}"{% if account.isActive %} data-confirm="Disable {{ account.username }}? They will no longer be able to sign in." data-confirm-title="Disable account" data-confirm-button="Disable"{% endif %}>
+                                        <input type="hidden" name="_token" value="{{ csrf_token('toggle-user-' ~ account.id) }}">
+                                        <button class="btn btn-sm btn-outline-{{ account.isActive ? 'warning' : 'success' }}" type="submit" aria-label="{{ account.isActive ? 'Disable' : 'Enable' }} account {{ account.username }}">{{ account.isActive ? 'Disable' : 'Enable' }}</button>
+                                    </form>
+                                {% endif %}
+                                <a class="btn btn-sm btn-outline-primary" href="{{ path('admin_users_edit', {id: account.id}) }}" aria-label="Edit account {{ account.username }}">Edit</a>
+                                <form class="d-inline" method="post" action="{{ path('admin_users_delete', {id: account.id}) }}" data-confirm="Delete this account?">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('delete-user-' ~ account.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger" type="submit" aria-label="Delete account {{ account.username }}">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% else %}
+                        <tr><td colspan="7" class="text-center text-secondary py-5">No accounts have been created.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createUserModal" tabindex="-1" aria-labelledby="createUserModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title fs-5" id="createUserModalLabel">Create account</h2>
+                        <p class="text-secondary small mb-0">Add an administrator or staff account.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {{ include('admin/users/_form.html.twig', {
+                        'form': create_form,
+                        'modal': true,
+                        'form_action': path('admin_users_new')
+                    }) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% if open_modal|default(false) %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modal = document.getElementById('createUserModal');
+                if (modal && window.bootstrap) {
+                    bootstrap.Modal.getOrCreateInstance(modal).show();
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock %}

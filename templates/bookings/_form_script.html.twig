@@ -1,0 +1,29 @@
+<script>
+    (function () {
+        const serviceField = document.getElementById('booking_service');
+        const weightField = document.getElementById('booking_weight');
+        const totalField = document.getElementById('booking_totalCost');
+
+        if (!serviceField || !weightField || !totalField) {
+            return;
+        }
+
+        function updateShipmentTotal() {
+            const selectedService = serviceField.selectedOptions[0];
+            const weight = Number.parseFloat(weightField.value);
+
+            if (!selectedService?.dataset.basePrice || !Number.isFinite(weight) || weight <= 0) {
+                totalField.value = '';
+                return;
+            }
+
+            const basePrice = Number.parseFloat(selectedService.dataset.basePrice);
+            const pricePerKg = Number.parseFloat(selectedService.dataset.pricePerKg);
+            totalField.value = (basePrice + Math.max(0, weight - 1) * pricePerKg).toFixed(2);
+        }
+
+        serviceField.addEventListener('change', updateShipmentTotal);
+        weightField.addEventListener('input', updateShipmentTotal);
+        updateShipmentTotal();
+    })();
+</script>

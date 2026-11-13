@@ -1,0 +1,110 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Services{% endblock %}
+
+{% block body %}
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-end gap-3">
+        <div>
+            <h1 class="mb-1">Services</h1>
+            <p class="text-muted mb-0">Manage available logistics services and rates.</p>
+        </div>
+        <a class="btn btn-primary" href="{{ path('admin_services_new') }}" data-bs-toggle="modal" data-bs-target="#createServiceModal">Add service</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-center" role="search">
+                <div class="col-12 col-lg-5">
+                    <label class="visually-hidden" for="service-search">Search services</label>
+                    <input id="service-search" class="form-control" type="search" name="q" value="{{ search }}" placeholder="Service name or description">
+                </div>
+                <div class="col-6 col-lg-3">
+                    <label class="visually-hidden" for="service-status">Filter by status</label>
+                    <select id="service-status" name="status" class="form-select">
+                        <option value="">All statuses</option>
+                        <option value="active" {{ status == 'active' ? 'selected' : '' }}>Active</option>
+                        <option value="inactive" {{ status == 'inactive' ? 'selected' : '' }}>Inactive</option>
+                    </select>
+                </div>
+                <div class="col-auto"><button class="btn btn-primary">Search</button></div>
+                {% if search or status %}
+                    <div class="col-auto"><a class="btn btn-link" href="{{ path('admin_services_index') }}">Clear</a></div>
+                {% endif %}
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <caption class="visually-hidden">Service catalogue</caption>
+                <thead>
+                    <tr>
+                        <th>Service</th>
+                        <th>Capacity</th>
+                        <th>Base price</th>
+                        <th>Price per kg</th>
+                        <th>Status</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for service in services %}
+                    <tr>
+                        <td>
+                            <strong>{{ service.name }}</strong>
+                            <div class="small text-muted">{{ service.description }}</div>
+                        </td>
+                        <td>{{ service.capacity }}</td>
+                        <td class="text-nowrap">PHP {{ service.basePrice }}</td>
+                        <td class="text-nowrap">PHP {{ service.pricePerKg }}</td>
+                        <td>
+                            <span class="badge {{ service.isActive ? 'text-bg-success' : 'text-bg-secondary' }}">
+                                {{ service.isActive ? 'Active' : 'Inactive' }}
+                            </span>
+                        </td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-secondary" href="{{ path('admin_services_show', {id: service.id}) }}" aria-label="View service {{ service.name }}">View</a>
+                            <a class="btn btn-sm btn-outline-primary" href="{{ path('admin_services_edit', {id: service.id}) }}" aria-label="Edit service {{ service.name }}">Edit</a>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td class="text-center text-muted py-4" colspan="6">No services have been added.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createServiceModal" tabindex="-1" aria-labelledby="createServiceModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title fs-5" id="createServiceModalLabel">Add service</h2>
+                        <p class="text-secondary small mb-0">Define the service capacity and pricing.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {{ include('admin/services/_form.html.twig', {
+                        'form': create_form,
+                        'modal': true,
+                        'form_action': path('admin_services_index')
+                    }) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% if open_modal|default(false) %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modal = document.getElementById('createServiceModal');
+                if (modal && window.bootstrap) {
+                    bootstrap.Modal.getOrCreateInstance(modal).show();
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock %}

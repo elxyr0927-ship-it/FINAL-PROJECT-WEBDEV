@@ -1,0 +1,202 @@
+### Final Project Development Plan & Implementation Roadmap
+
+To score the maximum **100 points** on your final project, your web application must combine robust **Symfony MVC architecture**, **Docker multi-container orchestration**, and strict **Role-Based Access Control (RBAC)** for Administrators and Staff members. 
+
+---
+
+### Step-by-Step Development Plan
+
+```
+┌───────────────────────────────────────────────────────────────────────────────────┐
+│                        FINAL PROJECT DEVELOPMENT ROADMAP                          │
+├───────────────────┬───────────────────┬───────────────────┬───────────────────────┤
+│ 1. INFRASTRUCTURE │ 2. ENTITIES & DB  │ 3. SECURITY & AUTH│ 4. FEATURES & STYLING │
+│   • Docker Stack  │   • User Entity   │   • Authentication│   • Admin Dashboard   │
+│   • Symfony Env   │   • Business Data │   • RBAC & Routes │   • Staff CRUD & UI   │
+│   • Base Layout   │   • Migrations    │   • Passwords     │   • Validation Checks │
+└───────────────────┴───────────────────┴───────────────────┴───────────────────────┘
+```
+
+#### Phase 1: Environment & Infrastructure Setup (Docker & Symfony Base)
+1. **Orchestrate Multi-Container Infrastructure (`compose.yaml`)**:
+   - Set up isolated containers for **MySQL 8.0** and **phpMyAdmin** connected via a custom network (`webdev-network`).
+   - Map external host ports to avoid port conflicts (e.g., MySQL host port `3310:3306` and phpMyAdmin host port `8080:80` or `8081:80`).
+   - Configure a named storage volume (`webdev-db-data`) mapped to `/var/lib/mysql` for data persistence across container restarts.
+2. **Configure Symfony Database Connection**:
+   - Update `.env` with your container credentials and custom port:
+     `DATABASE_URL="mysql://root:root@127.0.0.1:3310/webdev-db?serverVersion=8.0"`.
+   - Verify connection by executing `php bin/console doctrine:database:create`.
+3. **Establish Master Layout & Asset CDNs**:
+   - Build a global template skeleton in `templates/base.html.twig` containing the `<head>` section, main navigation, sidebars, and content block (`{% block body %}`).
+   - Include **Bootstrap** or **Tailwind CSS** CDN links in `base.html.twig` (CSS in `<head>`, JavaScript bundle before `</body>`).
+   - Break layout elements into modular partials (e.g., `templates/partials/_sidebar.html.twig`) and include them via `{% include 'partials/_sidebar.html.twig' %}`.
+
+---
+
+#### Phase 2: User Entity, Security & Authentication System (17 Points)
+1. **Generate User Entity & Extra Fields**:
+   - Run `php bin/console make:user`.
+   - Select `username` (or `email`) as the unique identifier and enable password hashing (`auto`).
+   - **Crucial Step**: Before running migrations, add any necessary profile fields (e.g., `fullName`, `email`, `status`, `createdAt`) directly to `src/Entity/User.php` along with their respective getter and setter methods.
+2. **Execute Initial Database Migration**:
+   - Run `php bin/console make:migration` followed by `php bin/console doctrine:migrations:migrate` to create the `user` table.
+3. **Generate Login Authenticator & Controllers**:
+   - Run `php bin/console make:security:form-login`.
+   - Select `login_form_authenticator`, name it `LoginAuthenticator`, create `LoginController`, enable `/logout` generation, and enable checkbox-activated "Remember Me" functionality.
+   - Update `config/packages/security.yaml` with a secure `secret` key and cookie lifetime (e.g., `604800` seconds / 7 days).
+4. **Configure Post-Login Redirection & Re-Login Guards**:
+   - In `src/Security/LoginAuthenticator.php`, uncomment the success handler and redirect authenticated users to the main dashboard route (`app_dashboard`).
+   - In `src/Controller/LoginController.php`, add a guard check: if `$this->getUser()` exists, immediately redirect logged-in users to `app_dashboard` so they cannot re-access `/login`.
+5. **Generate Registration System**:
+   - Run `php bin/console make:registration-form`.
+   - Enable `UniqueEntity` validation on the `User` class to block duplicate usernames/emails.
+   - Hashes passwords using `UserPasswordHasherInterface` before persisting to database—**never store plain-text passwords**.
+
+---
+
+#### Phase 3: Authorization & Access Control / RBAC (11 Points)
+1. **Define User Roles**:
+   - Standardize system roles: `ROLE_ADMIN` (Administrator) and `ROLE_STAFF` (Staff Member).
+2. **Route Security Restrictions (`security.yaml`)**:
+   - Enforce path-level security in `config/packages/security.yaml` under `access_control`:
+     ```yaml
+     access_control:
+       - { path: ^/admin, roles: ROLE_ADMIN }
+       - { path: ^/dashboard, roles: [ROLE_ADMIN, ROLE_STAFF] }
+       - { path: ^/records, roles: [ROLE_ADMIN, ROLE_STAFF] }
+     ```
+3. **Controller-Level Access Control**:
+   - Guard administrative routes directly inside controllers using attributes or methods:
+     `$this->denyAccessUnlessGranted('ROLE_ADMIN');` or `#[IsGranted('ROLE_ADMIN')]`
+   - **Bypass Handling**: Ensure that if a Staff member attempts to access an Admin URL manually, the application returns a **403 Access Denied** status or redirects to the dashboard.
+4. **Twig Menu Visibility**:
+   - Conditionally show or hide navigation buttons in `base.html.twig` or sidebar templates based on roles:
+     ```twig
+     {% if is_granted('ROLE_ADMIN') %}
+       <a href="{{ path('admin_user_index') }}">User Management</a>
+       <a href="{{ path('admin_dashboard') }}">Admin Dashboard</a>
+     {% endif %}
+     ```
+
+---
+
+#### Phase 4: Data Architecture, Relationships & Custom Repositories (15 Points)
+1. **Generate Domain Entities**:
+   - Create your application's core data tables using singular entity names (e.g., `Product`, `Category`, `Post`, `Order`) via `php bin/console make:entity`.
+2. **Establish Entity Relationships**:
+   - Define relational fields (e.g., `ManyToOne` relationship between `Product` and `Category`, or `User` and `Record`).
+   - Run `php bin/console make:migration` and `php bin/console doctrine:migrations:migrate` to update database schema.
+3. **Implement Custom Repository Queries (`QueryBuilder`)**:
+   - Open your repository files (e.g., `src/Repository/ProductRepository.php`) and write custom, sanitized query methods.
+   - **Always use INNER JOINs** when filtering across related tables (e.g., filtering products by category name or user ID):
+     ```php
+     public function findByCategory(string $categoryName): array
+     {
+         return $this->createQueryBuilder('p')
+             ->innerJoin('p.category', 'c')
+             ->andWhere('c.categoryName = :catName')
+             ->setParameter('catName', $categoryName)
+             ->getQuery()
+             ->getResult();
+     }
+     ```
+   - Remove boilerplate `setMaxResults(10)` unless implementing explicit pagination.
+
+---
+
+#### Phase 5: Admin & Staff Feature Implementation (35 Points)
+
+| Role | Required Functionalities | Points Breakdown | Implementation Standard |
+| :--- | :--- | :--- | :--- |
+| **Admin** | **User/Staff Management (CRUD)** | 17 Pts | • Create new accounts (`Admin` / `Staff`)<br>• View all user accounts (username, role, creation date)<br>• Edit user accounts (change name, email, role, reset password)<br>• Delete user accounts (with confirmation modal/prompt)<br>• Disable/Archive staff accounts |
+| **Admin** | **System Dashboard** | 3 Pts | • Display real-time KPI metrics: Total Users, Total Staff, Total Data Records |
+| **Admin** | **Full System-Wide Access** | 3 Pts | • View ALL records created by staff<br>• Edit or Delete ANY record system-wide<br>• Search & filter records by staff member or category |
+| **Staff** | **Limited Record CRUD** | 16 Pts | • Create new records (products, posts, etc.)<br>• View own records or shared system records<br>• Edit **OWN records only** (blocked from editing admin or other staff entries)<br>• Delete **OWN records only** (with confirmation prompt) |
+| **Staff** | **Strict System Restrictions** | Mandatory Constraint | • **CANNOT** create user accounts, access Admin Dashboard, change user roles, or delete other users' data |
+
+---
+
+#### Phase 6: UI, Modal Forms & Error Handling (19 Points)
+1. **Bootstrap / Tailwind Modal Integration**:
+   - Create popup modal forms for item creation on index views instead of navigating away.
+   - Add trigger button and modal markup in `index.html.twig`.
+   - Wrap fields cleanly between `{{ form_start(form) }}` and `{{ form_end(form) }}`.
+2. **Individual Field Grid Layout**:
+   - Structure form input widths using 12-column grid spans (e.g., full width `col-12` or side-by-side `col-6`).
+3. **Form Validation & CSRF Security**:
+   - Enable CSRF protection tokens (`_token`) on all forms.
+   - Add Twig form error widgets (`form_errors(form.fieldName)`) and entity validation constraints.
+   - Implement flash messages for user alerts (`$this->addFlash('success', 'Record updated successfully!');`).
+
+---
+
+### Instructor's Technical Reminders & "Avoid-Fail" Cheatsheet
+
+#### 1. The Controller POST Method Trap ⚠️
+- **Problem**: Submitting a modal form gives `405 Method Not Allowed / No route found for POST /product`.
+- **Cause**: The controller index route only listens for `GET` requests.
+- **Solution**: Edit the PHP 8 Route attribute in your controller to allow both `GET` and `POST`:
+  ```php
+  #[Route('/product', name: 'app_product_index', methods: ['GET', 'POST'])]
+  ```
+
+#### 2. The Dependency Injection Check ⚠️
+- **Problem**: Red squiggly lines or `Undefined variable $entityManager` / `$productRepository` errors.
+- **Cause**: Calling services inside a controller action without passing them in the function parameter list.
+- **Solution**: Always type-hint dependencies inside the controller method header:
+  ```php
+  public function index(Request $request, EntityManagerInterface $entityManager, ProductRepository $productRepository): Response
+  ```
+
+#### 3. Entity-to-String Conversion Crash ⚠️
+- **Problem**: Rendering an entity table displays `Catchable Fatal Error: Object of class App\Entity\Category could not be converted to string`.
+- **Cause**: Writing `{{ product.category }}` in Twig tries to print a raw database object as plain text.
+- **Solution**: Access the specific property inside the relationship string:
+  ```twig
+  {{ product.category.categoryName }} {# or product.category.name #}
+  ```
+
+#### 4. QueryBuilder INNER JOIN Requirement ⚠️
+- **Problem**: Custom repository query fails or throws `Unrecognized Field` when filtering by related data.
+- **Cause**: Trying to query `c.categoryName` without joining the related category entity table first.
+- **Solution**: Always call `->innerJoin('p.category', 'c')` before `.andWhere('c.categoryName = :val')`.
+
+#### 5. Modal Form Submit Button & Form Wrapping ⚠️
+- **Problem**: Clicking "Save" in a modal does not trigger form submission.
+- **Cause**: Placing the submit button outside `{{ form_end(form) }}` or omitting `type="submit"`.
+- **Solution**: Place modal footers inside `form_end` and explicitly set `<button type="submit" class="btn btn-primary">Save</button>`.
+
+#### 6. Docker Troubleshooting & Clean Reset Cheatsheet 🛠️
+If Docker crashes or refuses to start due to disk space issues or corrupted database volumes:
+```bash
+# 1. Force stop and remove failing containers
+docker rm -f webdev-mysql webdev-phpmyadmin
+
+# 2. Remove broken data volumes & dangling build cache
+docker volume rm webdev-db-data
+docker builder prune -a -f
+
+# 3. Spin up clean MySQL & phpMyAdmin containers
+docker run -d --name webdev-mysql --network webdev-network -v webdev-db-data:/var/lib/mysql -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=webdev-db -p 3310:3306 mysql:8.0
+
+docker run -d --name webdev-phpmyadmin --network webdev-network -p 8080:80 -e PMA_HOST=webdev-mysql phpmyadmin
+```
+
+#### 7. Git & Submission Reminders 📦
+- Check active GitHub remote connection: `git remote -v`.
+- Reset origin when linking a fresh repository: `git remote remove origin`.
+- Organize code branches cleanly (e.g., `main`, `crud-branch`) before submitting your repository link.
+
+---
+
+### Final Project Pre-Flight Verification Checklist
+
+- [ ] **Database & Docker**: Containers are running on `3310` / `8080` with data persisting across restarts.
+- [ ] **Authentication**: User registration, hashed passwords, login form, and logout route work seamlessly.
+- [ ] **Role Protection**: Admin routes block Staff users; Staff attempting manual URL entry triggers a `403` or redirect.
+- [ ] **Admin Control**: Admin dashboard displays total users, total staff, and total records, with full user management (Create/Edit/Delete/Archive).
+- [ ] **Staff Restrictions**: Staff members can only edit and delete their **own** entries.
+- [ ] **Data Validation & CSRF**: All forms include CSRF tokens, unique validation, and flash message feedback.
+- [ ] **UI Usability**: Reusable partial layout in `base.html.twig`, Bootstrap/Tailwind modal popups, and clean mobile readability.
+
+📊 I can turn this development plan into a structured slide deck presentation for your project review if you'd like to present it to your instructor.

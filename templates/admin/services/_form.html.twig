@@ -1,0 +1,28 @@
+{% import 'partials/_form_helpers.html.twig' as form_helpers %}
+
+{{ form_helpers.errorSummary(form) }}
+{% if form_action is defined and form_action %}
+    {{ form_start(form, {'action': form_action}) }}
+{% else %}
+    {{ form_start(form) }}
+{% endif %}
+    {% if modal|default(false) %}
+        <input type="hidden" name="_modal" value="1">
+    {% endif %}
+    <div class="row g-3">
+        <div class="col-md-8">{{ form_row(form.name) }}</div>
+        <div class="col-md-4 d-flex align-items-end">{{ form_row(form.isActive) }}</div>
+        <div class="col-12">{{ form_row(form.description) }}</div>
+        <div class="col-md-4">{{ form_row(form.capacity) }}</div>
+        <div class="col-md-4">{{ form_row(form.basePrice) }}</div>
+        <div class="col-md-4">{{ form_row(form.pricePerKg) }}</div>
+    </div>
+    <div class="form-actions">
+        <button class="btn btn-primary">{{ button_label|default('Save service') }}</button>
+        {% if modal|default(false) %}
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        {% elseif cancel_path is defined and cancel_path %}
+            <a class="btn btn-outline-secondary" href="{{ cancel_path }}">Cancel</a>
+        {% endif %}
+    </div>
+{{ form_end(form) }}

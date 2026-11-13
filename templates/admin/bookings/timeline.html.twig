@@ -1,0 +1,46 @@
+{% extends 'base.html.twig' %}
+
+{% import 'partials/_form_helpers.html.twig' as form_helpers %}
+
+{% block title %}Shipment timeline {{ booking.trackingCode }}{% endblock %}
+
+{% block body %}
+    <div class="page-heading">
+        <a class="small" href="{{ path('admin_bookings_show', {id: booking.id}) }}">&larr; Back to shipment</a>
+        <h1 class="mt-2 mb-1">Shipment timeline</h1>
+        <p class="text-muted mb-0"><code>{{ booking.trackingCode }}</code> &middot; {{ booking.status|capitalize }}</p>
+    </div>
+
+    <div class="row g-3">
+        <section class="col-lg-5">
+            <div class="card"><div class="card-body">
+                <h2 class="h5 mb-3">Add checkpoint</h2>
+                {{ form_helpers.errorSummary(form) }}
+                {{ form_start(form) }}
+                    {{ form_widget(form) }}
+                    <button class="btn btn-primary mt-3" {% if booking.status in ['delivered', 'cancelled'] %}disabled{% endif %}>Add checkpoint</button>
+                {{ form_end(form) }}
+                {% if booking.status in ['delivered', 'cancelled'] %}<p class="small text-muted mt-2 mb-0">Closed shipments cannot receive new checkpoints.</p>{% endif %}
+            </div></div>
+        </section>
+        <section class="col-lg-7">
+            <div class="card"><div class="card-header bg-white"><h2 class="h5 mb-0">History</h2></div>
+                <div class="list-group list-group-flush">
+                    {% for entry in history %}
+                        <article class="list-group-item">
+                            <div class="d-flex justify-content-between gap-3">
+                                <strong>{{ entry.checkpoint ?: (entry.oldStatus == entry.newStatus ? 'Status checkpoint' : 'Status changed') }}</strong>
+                                <time class="small text-muted text-nowrap">{{ entry.createdAt|date('M j, Y H:i') }}</time>
+                            </div>
+                            {% if entry.oldStatus != entry.newStatus %}<div class="small text-muted">{{ entry.oldStatus|capitalize }} &rarr; {{ entry.newStatus|capitalize }}</div>{% endif %}
+                            {% if entry.notes %}<p class="mb-1 mt-2">{{ entry.notes }}</p>{% endif %}
+                            <div class="small text-muted">Recorded by {{ entry.changedBy ? entry.changedBy.username : 'Former user' }}</div>
+                        </article>
+                    {% else %}
+                        <p class="text-muted p-3 mb-0">No timeline updates yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </section>
+    </div>
+{% endblock %}

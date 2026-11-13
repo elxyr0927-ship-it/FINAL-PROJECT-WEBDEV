@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script>
+            try {
+                if (window.localStorage.getItem('yocor.sidebar.collapsed') === '1') {
+                    document.documentElement.classList.add('sidebar-collapsed');
+                }
+            } catch (error) {}
+        </script>
+        <title>{% block title %}YOCOR Express Admin{% endblock %}</title>
+        <meta name="theme-color" content="#1D3563">
+        <link rel="icon" type="image/svg+xml" href="{{ asset('brand/yocor-logo.svg') }}">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+        <style>
+            :root {
+                --yocor-navy: #1D3563;
+                --yocor-navy-deep: #14284D;
+                --yocor-orange: #F37B23;
+                --yocor-orange-text: #C2410C;
+                --yocor-ink: #1E293B;
+                --yocor-muted: #64748B;
+                --yocor-border: #E2E8F0;
+                --yocor-canvas: #F3F6FA;
+                --yocor-surface: #FFFFFF;
+                --yocor-radius: 10px;
+                --yocor-shadow: 0 1px 2px rgba(20, 40, 77, .04), 0 6px 18px rgba(20, 40, 77, .05);
+                --yocor-control-h: 38px;
+                --yocor-control-h-sm: 32px;
+            }
+            * { box-sizing: border-box; }
+            body { min-height: 100vh; background: var(--yocor-canvas); color: var(--yocor-ink); font-family: 'Roboto', sans-serif; font-size: 15px; line-height: 1.5; }
+            h1, h2, h3, h4, h5, h6, .font-heading { color: var(--yocor-navy); font-family: 'Montserrat', sans-serif; font-weight: 700; letter-spacing: -.02em; }
+            h1, .h1 { font-size: 1.5rem; line-height: 1.25; }
+            h2, .h2 { font-size: 1.2rem; line-height: 1.3; }
+            h3, .h3 { font-size: 1.05rem; }
+            h4, .h4 { font-size: .95rem; }
+            h5, .h5 { font-size: .95rem; }
+            h6, .h6 { font-size: .85rem; }
+            a { color: var(--yocor-navy); text-decoration: none; }
+            a:hover { color: var(--yocor-orange-text); }
+            :focus-visible { outline: 3px solid rgba(243, 123, 35, .55); outline-offset: 2px; }
+            .skip-link { position: absolute; left: .5rem; top: -3.5rem; z-index: 1100; padding: .5rem .9rem; border-radius: 8px; background: var(--yocor-navy); color: #fff; font-weight: 600; }
+            .skip-link:focus { top: .5rem; color: #fff; }
+            .brand-bg { background: var(--yocor-navy); }
+            .brand-text { color: var(--yocor-navy); }
+            .brand-accent { color: var(--yocor-orange-text); }
+            .btn-brand { border: 1px solid var(--yocor-navy); background: var(--yocor-navy); color: #fff; }
+            .btn-brand:hover, .btn-brand:focus { border-color: var(--yocor-navy-deep); background: var(--yocor-navy-deep); color: #fff; }
+            .btn-primary { --bs-btn-bg: var(--yocor-navy); --bs-btn-border-color: var(--yocor-navy); --bs-btn-hover-bg: var(--yocor-navy-deep); --bs-btn-hover-border-color: var(--yocor-navy-deep); --bs-btn-active-bg: var(--yocor-navy-deep); --bs-btn-active-border-color: var(--yocor-navy-deep); }
+            .btn, .form-control, .form-select { min-height: var(--yocor-control-h); border-radius: 8px; }
+            .btn { padding: .42rem .85rem; font-size: .9rem; font-weight: 500; }
+            .btn-sm { min-height: var(--yocor-control-h-sm); padding: .28rem .65rem; font-size: .8rem; }
+            .form-control, .form-select { padding: .38rem .65rem; font-size: .9rem; border-color: #CBD5E1; }
+            .form-label, .form-check-label { color: #334155; font-weight: 600; font-size: .85rem; }
+            .form-text { font-size: .78rem; }
+            .btn, .sidebar-link, .card, .form-control, .form-select { transition: border-color .18s ease, box-shadow .18s ease, background-color .18s ease, color .18s ease; }
+            .form-control:focus, .form-select:focus { border-color: var(--yocor-orange); box-shadow: 0 0 0 .2rem rgba(243, 123, 35, .16); }
+            .text-muted, .text-secondary { color: var(--yocor-muted) !important; }
+            .card { border: 1px solid var(--yocor-border); border-radius: var(--yocor-radius); box-shadow: var(--yocor-shadow); background: var(--yocor-surface); }
+            .card-header { border-color: var(--yocor-border); border-radius: var(--yocor-radius) var(--yocor-radius) 0 0 !important; padding: .8rem 1rem; }
+            .card-footer { border-color: var(--yocor-border); padding: .75rem 1rem; }
+            .table { --bs-table-color: var(--yocor-ink); --bs-table-border-color: var(--yocor-border); font-size: .875rem; }
+            .table thead th { position: sticky; top: 0; z-index: 1; background-color: #F8FAFC; color: #475569; font-size: .72rem; font-weight: 700; letter-spacing: .055em; text-transform: uppercase; white-space: nowrap; }
+            .table > :not(caption) > * > * { padding: .55rem .7rem; }
+            .table tbody tr:last-child > * { border-bottom-width: 0; }
+            code { background: #F1F5F9; border-radius: 4px; padding: .1rem .35rem; color: #334155; font-size: .8rem; }
+            .alert { border-radius: 8px; font-size: .9rem; }
+            .badge { font-weight: 600; letter-spacing: .01em; }
+            .loading-bar { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1095; overflow: hidden; opacity: 0; transition: opacity .15s ease; pointer-events: none; }
+            .loading-bar.is-active { opacity: 1; }
+            .loading-bar::before { content: ''; display: block; width: 40%; height: 100%; background: linear-gradient(90deg, var(--yocor-navy), var(--yocor-orange)); border-radius: 0 2px 2px 0; animation: loading-bar 1s ease-in-out infinite; }
+            @keyframes loading-bar { 0% { transform: translateX(-100%); } 100% { transform: translateX(350%); } }
+            .flash-stack { position: fixed; top: 1rem; right: 1rem; z-index: 1090; display: flex; flex-direction: column; gap: .5rem; width: min(92vw, 380px); pointer-events: none; }
+            .flash-stack--app { top: 4.75rem; }
+            .flash-stack > * { pointer-events: auto; }
+            .flash-alert { margin-bottom: 0; display: flex; align-items: flex-start; gap: .6rem; border: 1px solid var(--yocor-border); border-left-width: 4px; box-shadow: var(--yocor-shadow); animation: flash-in .2s ease-out; }
+            .flash-alert.alert-success { background: #F0FDF4; border-color: #BBF7D0; border-left-color: #16A34A; color: #166534; }
+            .flash-alert.alert-danger { background: #FEF2F2; border-color: #FECACA; border-left-color: #DC2626; color: #991B1B; }
+            .flash-alert.alert-warning { background: #FFFBEB; border-color: #FDE68A; border-left-color: #D97706; color: #92400E; }
+            .flash-alert.alert-info { background: #F0F9FF; border-color: #BAE6FD; border-left-color: #0EA5E9; color: #075985; }
+            .flash-alert .btn-close { margin-left: auto; flex-shrink: 0; }
+            @keyframes flash-in { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: none; } }
+            .page-heading { margin-bottom: 1.25rem; }
+            .page-heading h1 { margin-bottom: .25rem; }
+            .app-shell { height: 100vh; min-height: 100vh; overflow: hidden; }
+            .app-main { display: flex; min-width: 0; height: 100vh; flex-direction: column; overflow: hidden; }
+            .app-content { width: 100%; max-width: 1320px; margin-inline: auto; }
+            .app-sidebar { width: 216px; height: 100vh; background: var(--yocor-surface); border-color: var(--yocor-border) !important; }
+            .sidebar-link { display: flex; align-items: center; min-height: 38px; padding: .45rem .65rem; border-radius: 7px; color: #475569; font-size: .9rem; font-weight: 500; text-decoration: none; }
+            .sidebar-link i { width: 1.15rem; font-size: .85rem; color: #718096; }
+            .sidebar-link:hover, .sidebar-link.active { background: #EEF2F8; color: var(--yocor-navy); }
+            .sidebar-link.active { font-weight: 700; box-shadow: inset 3px 0 0 var(--yocor-orange); }
+            .sidebar-link.active i { color: var(--yocor-orange); }
+            .app-sidebar .small.text-uppercase { font-size: .68rem; letter-spacing: .07em; }
+            .brand-logo { display: block; width: 100%; max-width: 150px; height: auto; }
+            .header-brand { display: inline-flex; flex-shrink: 0; align-items: center; text-decoration: none; }
+            .header-brand img { display: block; height: 26px; width: auto; }
+            @media (min-width: 992px) {
+                .app-sidebar { transition: margin-left .18s ease, visibility .18s ease; }
+                .sidebar-collapsed .app-sidebar { margin-left: -216px; visibility: hidden; }
+                .header-brand { display: none; }
+                .sidebar-collapsed .header-brand { display: inline-flex; }
+            }
+            .app-header { min-height: 56px; border-color: var(--yocor-border) !important; }
+            .app-footer { border-color: var(--yocor-border) !important; font-size: .78rem; }
+            .app-main > main { min-height: 0; flex: 1 1 auto; overflow-y: auto; overscroll-behavior: contain; }
+            .metric-card { position: relative; overflow: hidden; min-height: 0; }
+            .metric-card .card-body { padding: .8rem .9rem; }
+            .metric-card::before { position: absolute; inset: 0 auto 0 0; width: 4px; background: var(--yocor-orange); content: ''; }
+            .metric-value { color: var(--yocor-navy); font-family: 'Montserrat', sans-serif; font-size: 1.5rem; font-weight: 700; line-height: 1.2; }
+            .dashboard-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 150px), 1fr)); gap: 1rem; }
+            .form-shell { width: 100%; max-width: 760px; margin-inline: auto; }
+            .detail-shell { width: 100%; max-width: 1040px; margin-inline: auto; }
+            .prose-measure { max-width: 75ch; }
+            .form-actions { display: flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin-top: 1.25rem; }
+            .detail-list dt { color: #475569; font-weight: 600; font-size: .85rem; }
+            .detail-list dd { margin-bottom: .55rem; }
+            .login-page { display: grid; min-height: 100vh; place-items: center; padding: 2rem 1rem; background: radial-gradient(circle at 12% 12%, rgba(243,123,35,.11), transparent 25rem), radial-gradient(circle at 88% 90%, rgba(29,53,99,.09), transparent 30rem), var(--yocor-canvas); }
+            .login-card { width: min(100%, 440px); overflow: hidden; border-top: 4px solid var(--yocor-orange); }
+            .login-card h1 { font-size: 1.35rem; }
+            .login-logo { width: min(100%, 220px); height: auto; }
+            @media (max-width: 991.98px) { .app-sidebar { min-height: 100%; } }
+            @supports (height: 100dvh) {
+                .app-shell, .app-main, .app-sidebar { height: 100dvh; }
+                .app-shell { min-height: 100dvh; }
+            }
+            @media (max-width: 767.98px) {
+                body { font-size: 16px; }
+                h1, .h1 { font-size: 1.4rem; }
+                .app-header { min-height: 52px; }
+                .header-brand img { height: 22px; }
+                .btn, .form-control, .form-select { min-height: 44px; }
+                .btn-sm { min-height: 38px; }
+                .table > :not(caption) > * > * { padding: .65rem .6rem; }
+                .form-actions .btn { width: 100%; }
+            }
+            @media (prefers-reduced-motion: reduce) {
+                *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+                .loading-bar::before { animation: none; width: 100%; }
+            }
+        </style>
+        {% block stylesheets %}{% endblock %}
+    </head>
+    <body>
+        <div class="loading-bar" id="loadingBar" aria-hidden="true"></div>
+        <a class="skip-link" href="#main">Skip to content</a>
+        <div class="flash-stack {{ app.user ? 'flash-stack--app' : '' }}" aria-live="polite" aria-atomic="false">
+            {% set flash_icons = {success: 'fa-circle-check', danger: 'fa-circle-exclamation', error: 'fa-circle-exclamation', warning: 'fa-triangle-exclamation', info: 'fa-circle-info'} %}
+            {% for label, messages in app.flashes %}
+                {% set variant = label == 'error' ? 'danger' : label %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ variant }} alert-dismissible flash-alert {{ variant in ['success', 'info', 'warning'] ? 'js-auto-dismiss' : '' }}" role="{{ variant == 'danger' ? 'alert' : 'status' }}">
+                        <i class="fa-solid {{ flash_icons[variant]|default('fa-circle-info') }} mt-1" aria-hidden="true"></i>
+                        <div class="flex-grow-1">{{ message }}</div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endfor %}
+        </div>
+        {% if app.user %}
+            <div class="app-shell d-flex">
+                {% include 'partials/_sidebar.html.twig' %}
+                <div class="app-main flex-grow-1">
+                    {% include 'partials/_header.html.twig' %}
+        {% endif %}
+        <main id="main" class="{{ app.user ? 'container-fluid px-3 px-md-4 py-3 py-lg-4' : '' }}">
+            {% if app.user %}<div class="app-content">{% endif %}
+            {% block body %}{% endblock %}
+            {% if app.user %}</div>{% endif %}
+        </main>
+        {% if app.user %}
+                    {% include 'partials/_footer.html.twig' %}
+                </div>
+            </div>
+        {% endif %}
+        {% include 'partials/_confirm_modal.html.twig' %}
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+        <script>
+            (function () {
+                const bar = document.getElementById('loadingBar');
+                let watchdog = null;
+                let active = false;
+
+                function startLoading() {
+                    if (active) {
+                        return;
+                    }
+                    active = true;
+                    bar.classList.add('is-active');
+                    watchdog = window.setTimeout(stopLoading, 15000);
+                }
+
+                function stopLoading() {
+                    active = false;
+                    window.clearTimeout(watchdog);
+                    bar.classList.remove('is-active');
+                }
+
+                const sidebarToggle = document.getElementById('sidebarToggle');
+                const root = document.documentElement;
+
+                function syncSidebarToggle() {
+                    if (!sidebarToggle) {
+                        return;
+                    }
+                    const collapsed = root.classList.contains('sidebar-collapsed');
+                    const label = collapsed ? 'Show navigation' : 'Hide navigation';
+                    sidebarToggle.setAttribute('aria-expanded', collapsed ? 'false' : 'true');
+                    sidebarToggle.setAttribute('aria-label', label);
+                    sidebarToggle.setAttribute('title', label);
+                }
+
+                if (sidebarToggle) {
+                    sidebarToggle.addEventListener('click', function () {
+                        const collapsed = root.classList.toggle('sidebar-collapsed');
+                        try {
+                            window.localStorage.setItem('yocor.sidebar.collapsed', collapsed ? '1' : '0');
+                        } catch (error) {}
+                        syncSidebarToggle();
+                    });
+                    syncSidebarToggle();
+                }
+
+                const confirmModalElement = document.getElementById('confirmActionModal');
+                const confirmMessage = document.getElementById('confirmActionMessage');
+                const confirmTitle = document.getElementById('confirmActionTitle');
+                const confirmButton = document.getElementById('confirmActionButton');
+                let formToConfirm = null;
+
+                function submitConfirmedForm() {
+                    if (!formToConfirm) {
+                        return;
+                    }
+                    const form = formToConfirm;
+                    formToConfirm = null;
+                    if (confirmModalElement && window.bootstrap) {
+                        bootstrap.Modal.getOrCreateInstance(confirmModalElement).hide();
+                    }
+                    form.dataset.confirmed = '1';
+                    form.submit();
+                }
+
+                if (confirmButton) {
+                    confirmButton.addEventListener('click', submitConfirmedForm);
+                }
+
+                if (confirmModalElement) {
+                    confirmModalElement.addEventListener('hidden.bs.modal', function () {
+                        formToConfirm = null;
+                    });
+                }
+
+                document.addEventListener('submit', function (event) {
+                    const form = event.target;
+                    if (!(form instanceof HTMLFormElement) || !form.hasAttribute('data-confirm') || form.dataset.confirmed === '1') {
+                        return;
+                    }
+                    event.preventDefault();
+                    const message = form.getAttribute('data-confirm') || 'Are you sure you want to continue?';
+
+                    if (!confirmModalElement || !window.bootstrap) {
+                        if (window.confirm(message)) {
+                            form.dataset.confirmed = '1';
+                            form.submit();
+                        }
+                        return;
+                    }
+
+                    formToConfirm = form;
+                    if (confirmMessage) {
+                        confirmMessage.textContent = message;
+                    }
+                    if (confirmTitle) {
+                        confirmTitle.textContent = form.getAttribute('data-confirm-title') || 'Confirm action';
+                    }
+                    if (confirmButton) {
+                        confirmButton.textContent = form.getAttribute('data-confirm-button') || 'Delete';
+                    }
+                    bootstrap.Modal.getOrCreateInstance(confirmModalElement).show();
+                }, true);
+
+                document.addEventListener('submit', function (event) {
+                    if (event.defaultPrevented) {
+                        return;
+                    }
+                    const form = event.target;
+                    if (!(form instanceof HTMLFormElement) || form.hasAttribute('data-no-loading')) {
+                        return;
+                    }
+                    const method = (form.getAttribute('method') || 'get').toLowerCase();
+                    startLoading();
+
+                    if (method !== 'post') {
+                        return;
+                    }
+                    const button = form.querySelector('button[type="submit"]') || form.querySelector('button:not([type])');
+                    if (!button || button.disabled) {
+                        return;
+                    }
+                    window.setTimeout(function () {
+                        if (!active) {
+                            return;
+                        }
+                        button.disabled = true;
+                        button.setAttribute('aria-busy', 'true');
+                        const spinner = document.createElement('span');
+                        spinner.className = 'spinner-border spinner-border-sm me-2';
+                        spinner.setAttribute('aria-hidden', 'true');
+                        button.textContent = '';
+                        button.appendChild(spinner);
+                        button.appendChild(document.createTextNode('Processing…'));
+                    }, 0);
+                });
+
+                document.addEventListener('click', function (event) {
+                    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) {
+                        return;
+                    }
+                    if (!(event.target instanceof Element)) {
+                        return;
+                    }
+                    const link = event.target.closest('a[href]');
+                    if (!link || link.target || link.hasAttribute('download')) {
+                        return;
+                    }
+                    const href = link.getAttribute('href');
+                    if (!href || href.charAt(0) === '#' || /^(mailto:|tel:|javascript:)/i.test(href)) {
+                        return;
+                    }
+                    if (link.dataset.bsToggle === 'modal') {
+                        return;
+                    }
+                    const url = new URL(href, window.location.href);
+                    if (url.origin !== window.location.origin) {
+                        return;
+                    }
+                    if (url.pathname === window.location.pathname && url.search === window.location.search) {
+                        return;
+                    }
+                    startLoading();
+                });
+
+                document.querySelectorAll('.js-auto-dismiss').forEach(function (el) {
+                    window.setTimeout(function () {
+                        if (window.bootstrap && bootstrap.Alert) {
+                            bootstrap.Alert.getOrCreateInstance(el).close();
+                        } else {
+                            el.remove();
+                        }
+                    }, 6000);
+                });
+
+                window.addEventListener('pageshow', stopLoading);
+            })();
+        </script>
+        {% block javascripts %}{% endblock %}
+    </body>
+</html>

@@ -1,0 +1,30 @@
+<aside class="app-sidebar offcanvas-lg offcanvas-start border-end flex-shrink-0" tabindex="-1" id="appSidebar" aria-labelledby="appSidebarLabel">
+    <div class="offcanvas-header border-bottom d-lg-none">
+        <h2 class="visually-hidden" id="appSidebarLabel">YOCOR Express navigation</h2>
+        <img class="brand-logo" src="{{ asset('brand/yocor-logo.svg') }}" alt="YOCOR Express">
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close navigation"></button>
+    </div>
+    <div class="offcanvas-body d-flex flex-column p-3">
+        <a class="d-flex align-items-center text-decoration-none mb-3 px-1" href="{{ path('app_dashboard') }}" aria-label="YOCOR Express home">
+            <img class="brand-logo" src="{{ asset('brand/yocor-logo.svg') }}" alt="YOCOR Express">
+        </a>
+
+        <nav class="nav flex-column">
+            {% if is_granted('ROLE_ADMIN') %}
+                <span class="small text-uppercase text-secondary fw-semibold px-2 mt-2 mb-1">Administration</span>
+                <a class="nav-link sidebar-link {{ app.request.attributes.get('_route') starts with 'admin_dashboard' ? 'active' : '' }}" href="{{ path('admin_dashboard') }}" {{ app.request.attributes.get('_route') starts with 'admin_dashboard' ? 'aria-current=page' : '' }}><i class="fa-solid fa-chart-pie me-2"></i>Dashboard</a>
+                <a class="nav-link sidebar-link {{ app.request.attributes.get('_route') starts with 'admin_services_' ? 'active' : '' }}" href="{{ path('admin_services_index') }}" {{ app.request.attributes.get('_route') starts with 'admin_services_' ? 'aria-current=page' : '' }}><i class="fa-solid fa-truck-fast me-2"></i>Services</a>
+                <a class="nav-link sidebar-link {{ app.request.attributes.get('_route') starts with 'admin_bookings_' ? 'active' : '' }}" href="{{ path('admin_bookings_index') }}" {{ app.request.attributes.get('_route') starts with 'admin_bookings_' ? 'aria-current=page' : '' }}><i class="fa-solid fa-boxes-stacked me-2"></i>Shipments</a>
+                <a class="nav-link sidebar-link {{ app.request.attributes.get('_route') starts with 'admin_inquiries_' ? 'active' : '' }}" href="{{ path('admin_inquiries_index') }}" {{ app.request.attributes.get('_route') starts with 'admin_inquiries_' ? 'aria-current=page' : '' }}><i class="fa-solid fa-envelope me-2"></i>Inquiries</a>
+                <a class="nav-link sidebar-link {{ app.request.attributes.get('_route') starts with 'admin_users_' ? 'active' : '' }}" href="{{ path('admin_users_index') }}" {{ app.request.attributes.get('_route') starts with 'admin_users_' ? 'aria-current=page' : '' }}><i class="fa-solid fa-users me-2"></i>User accounts</a>
+            {% elseif is_granted('ROLE_STAFF') %}
+                <span class="small text-uppercase text-secondary fw-semibold px-2 mt-2 mb-1">Staff workspace</span>
+                <a class="nav-link sidebar-link {{ app.request.attributes.get('_route') starts with 'staff_bookings_' ? 'active' : '' }}" href="{{ path('staff_bookings_index') }}" {{ app.request.attributes.get('_route') starts with 'staff_bookings_' ? 'aria-current=page' : '' }}><i class="fa-solid fa-box me-2"></i>Shipments</a>
+            {% endif %}
+
+            <span class="small text-uppercase text-secondary fw-semibold px-2 mt-4 mb-1">Account</span>
+            <a class="nav-link sidebar-link {{ app.request.attributes.get('_route') == 'account_profile' ? 'active' : '' }}" href="{{ path('account_profile') }}" {{ app.request.attributes.get('_route') == 'account_profile' ? 'aria-current=page' : '' }}><i class="fa-solid fa-user me-2"></i>My profile</a>
+            <a class="nav-link sidebar-link {{ app.request.attributes.get('_route') == 'account_password' ? 'active' : '' }}" href="{{ path('account_password') }}" {{ app.request.attributes.get('_route') == 'account_password' ? 'aria-current=page' : '' }}><i class="fa-solid fa-key me-2"></i>Change password</a>
+        </nav>
+    </div>
+</aside>

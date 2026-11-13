@@ -1,0 +1,29 @@
+{% import 'partials/_form_helpers.html.twig' as form_helpers %}
+
+{{ form_helpers.errorSummary(form) }}
+
+{% if form_action is defined and form_action %}
+    {{ form_start(form, {'action': form_action}) }}
+{% else %}
+    {{ form_start(form) }}
+{% endif %}
+    {% if modal|default(false) %}
+        <input type="hidden" name="_modal" value="1">
+    {% endif %}
+    <div class="row g-3">
+        <div class="col-md-6">{{ form_row(form.name) }}</div>
+        <div class="col-md-6">{{ form_row(form.username) }}</div>
+        <div class="col-md-6">{{ form_row(form.email) }}</div>
+        <div class="col-md-6">{{ form_row(form.role) }}</div>
+        <div class="col-md-6 d-flex align-items-end">{{ form_row(form.isActive) }}</div>
+        <div class="col-12">{{ form_row(form.plainPassword) }}</div>
+    </div>
+    <div class="form-actions">
+        <button class="btn btn-brand" type="submit">Save account</button>
+        {% if modal|default(false) %}
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        {% else %}
+            <a class="btn btn-outline-secondary" href="{{ path('admin_users_index') }}">Cancel</a>
+        {% endif %}
+    </div>
+{{ form_end(form) }}

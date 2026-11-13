@@ -1,0 +1,17 @@
+{% macro errorList(form, label) %}
+    {% for error in form.vars.errors %}
+        <li>{{ label ? label ~ ': ' : '' }}{{ error.message }}</li>
+    {% endfor %}
+    {% for child in form %}
+        {{ _self.errorList(child, child.vars.label|default(child.vars.name|humanize)) }}
+    {% endfor %}
+{% endmacro %}
+
+{% macro errorSummary(form) %}
+    {% if form.vars.submitted and not form.vars.valid %}
+        <div class="alert alert-danger" role="alert">
+            <div class="fw-semibold mb-1"><i class="fa-solid fa-circle-exclamation me-2" aria-hidden="true"></i>Please fix the highlighted fields.</div>
+            <ul class="mb-0 ps-4">{{ _self.errorList(form, '') }}</ul>
+        </div>
+    {% endif %}
+{% endmacro %}

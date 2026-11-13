@@ -1,0 +1,82 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Customer inquiries{% endblock %}
+
+{% block body %}
+    <div class="page-heading">
+        <h1 class="mb-1">Customer inquiries</h1>
+        <p class="text-muted mb-0">{{ unread_count }} unread of {{ total_count }} active inquiries &middot; {{ archived_count }} archived.</p>
+    </div>
+
+    <div class="d-flex flex-wrap gap-2 mb-3">
+        {% set counts = {'all': total_count, 'unread': unread_count, 'read': read_count, 'archived': archived_count} %}
+        {% for value, label in {'all': 'All', 'unread': 'Unread', 'read': 'Read', 'archived': 'Archived'} %}
+            <a class="btn btn-sm {{ filter == value ? 'btn-primary' : 'btn-outline-primary' }}"
+               href="{{ path('admin_inquiries_index', {filter: value, q: search}) }}">{{ label }} ({{ counts[value] }})</a>
+        {% endfor %}
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-center" role="search">
+                <input type="hidden" name="filter" value="{{ filter }}">
+                <div class="col-12 col-md-6">
+                    <label class="visually-hidden" for="inquiry-search">Search inquiries</label>
+                    <input id="inquiry-search" class="form-control" type="search" name="q" value="{{ search }}" placeholder="Name, email, subject, or message">
+                </div>
+                <div class="col-auto"><button class="btn btn-primary">Search</button></div>
+                {% if search %}<div class="col-auto"><a class="btn btn-link" href="{{ path('admin_inquiries_index', {filter: filter}) }}">Clear</a></div>{% endif %}
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <caption class="visually-hidden">Customer inquiries</caption>
+                <thead><tr><th>Inquiry</th><th>Sender</th><th>Received</th><th>Status</th><th class="text-end">Actions</th></tr></thead>
+                <tbody>
+                {% for inquiry in inquiries %}
+                    <tr>
+                        <td>
+                            <a href="{{ path('admin_inquiries_show', {id: inquiry.id}) }}"><strong>{{ inquiry.subject }}</strong></a>
+                            <div class="small text-muted text-truncate" style="max-width: 46ch">{{ inquiry.message }}</div>
+                            {% if inquiry.deletedAt %}<div class="small text-muted">Archived {{ inquiry.deletedAt|date('M j, Y H:i') }}</div>{% endif %}
+                        </td>
+                        <td>{{ inquiry.name }}<div class="small text-muted">{{ inquiry.email }}</div></td>
+                        <td class="text-nowrap">{{ inquiry.createdAt|date('M j, Y H:i') }}</td>
+                        <td>
+                            {% if inquiry.deletedAt %}
+                                <span class="badge text-bg-light border text-secondary">Archived</span>
+                            {% else %}
+                                <span class="badge {{ inquiry.isRead ? 'text-bg-secondary' : 'text-bg-primary' }}">{{ inquiry.isRead ? 'Read' : 'Unread' }}</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end text-nowrap">
+                            {% if inquiry.deletedAt %}
+                                <form class="d-inline" method="post" action="{{ path('admin_inquiries_action', {id: inquiry.id, action: 'restore'}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('inquiry_restore' ~ inquiry.id) }}">
+                                    <button class="btn btn-sm btn-outline-primary">Restore</button>
+                                </form>
+                                <form class="d-inline" method="post" action="{{ path('admin_inquiries_action', {id: inquiry.id, action: 'delete'}) }}" data-confirm="Permanently delete this inquiry? This cannot be undone.">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('inquiry_delete' ~ inquiry.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
+                            {% else %}
+                                {% set action = inquiry.isRead ? 'unread' : 'read' %}
+                                <form class="d-inline" method="post" action="{{ path('admin_inquiries_action', {id: inquiry.id, action: action}) }}">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('inquiry_' ~ action ~ inquiry.id) }}">
+                                    <button class="btn btn-sm btn-outline-primary">{{ inquiry.isRead ? 'Mark unread' : 'Mark read' }}</button>
+                                </form>
+                                <form class="d-inline" method="post" action="{{ path('admin_inquiries_action', {id: inquiry.id, action: 'archive'}) }}" data-confirm="Archive this inquiry?" data-confirm-title="Archive inquiry" data-confirm-button="Archive">
+                                    <input type="hidden" name="_token" value="{{ csrf_token('inquiry_archive' ~ inquiry.id) }}">
+                                    <button class="btn btn-sm btn-outline-danger">Archive</button>
+                                </form>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td class="text-center text-muted py-4" colspan="5">No inquiries match this filter.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+{% endblock %}

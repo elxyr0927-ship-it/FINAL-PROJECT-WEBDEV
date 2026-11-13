@@ -1,0 +1,68 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Shipment {{ booking.trackingCode }}{% endblock %}
+
+{% block body %}
+    <div class="detail-shell">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+            <div>
+                <a class="small" href="{{ path(back_route) }}">&larr; Back to shipments</a>
+                <h1 class="mt-2 mb-2">{{ booking.trackingCode }}</h1>
+                <span class="badge text-bg-secondary">{{ booking.status|capitalize }}</span>
+                <span class="badge {{ booking.paymentStatus == 'paid' ? 'text-bg-success' : (booking.paymentStatus == 'under_review' ? 'text-bg-info' : 'text-bg-warning') }}">{{ booking.paymentStatus|replace({'_': ' '})|capitalize }}</span>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                {% if is_granted('ROLE_ADMIN') and timeline_route is defined and timeline_route %}
+                    <a class="btn btn-sm btn-outline-secondary" href="{{ path(timeline_route, {id: booking.id}) }}">Timeline</a>
+                {% endif %}
+                {% if is_granted('BOOKING_EDIT', booking) %}
+                    <a class="btn btn-sm btn-outline-primary" href="{{ path(edit_route, {id: booking.id}) }}">Edit</a>
+                {% endif %}
+                {% if is_granted('BOOKING_DELETE', booking) %}
+                    <form method="post" action="{{ path(delete_route, {id: booking.id}) }}" data-confirm="Delete this shipment record?">
+                        <input type="hidden" name="_token" value="{{ csrf_token('delete' ~ booking.id) }}">
+                        <button class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <section class="col-lg-6">
+                <div class="card h-100"><div class="card-body">
+                    <h2 class="h5 mb-3">Customer and service</h2>
+                    <dl class="detail-list row mb-0">
+                        <dt class="col-sm-4">Customer</dt><dd class="col-sm-8">{{ booking.customerName }}</dd>
+                        <dt class="col-sm-4">Email</dt><dd class="col-sm-8">{{ booking.customerEmail }}</dd>
+                        <dt class="col-sm-4">Service</dt><dd class="col-sm-8">{{ booking.service.name }}</dd>
+                        <dt class="col-sm-4">Weight</dt><dd class="col-sm-8">{{ booking.weight }} kg</dd>
+                        <dt class="col-sm-4">Total cost</dt><dd class="col-sm-8">PHP {{ booking.totalCost }}</dd>
+                        <dt class="col-sm-4">Created</dt><dd class="col-sm-8">{{ booking.createdAt|date('M j, Y H:i') }}</dd>
+                        <dt class="col-sm-4">Encoded by</dt>
+                        <dd class="col-sm-8">
+                            {% if booking.createdBy %}
+                                {% set creator_roles = booking.createdBy.roles %}
+                                {{ booking.createdBy.name }}
+                                <span class="text-muted">({{ booking.createdBy.username }})</span>
+                                <div class="small text-muted">{{ 'ROLE_ADMIN' in creator_roles ? 'Administrator' : ('ROLE_STAFF' in creator_roles ? 'Staff' : 'User') }}</div>
+                            {% else %}
+                                <span class="text-muted">System / former user</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div></div>
+            </section>
+            <section class="col-lg-6">
+                <div class="card h-100"><div class="card-body">
+                    <h2 class="h5 mb-3">Route</h2>
+                    <dl class="detail-list row mb-0">
+                        <dt class="col-sm-4">Pickup region</dt><dd class="col-sm-8">{{ booking.pickupRegion }}</dd>
+                        <dt class="col-sm-4">Pickup address</dt><dd class="col-sm-8">{{ booking.pickupAddress }}</dd>
+                        <dt class="col-sm-4">Delivery region</dt><dd class="col-sm-8">{{ booking.deliveryRegion }}</dd>
+                        <dt class="col-sm-4">Delivery address</dt><dd class="col-sm-8">{{ booking.deliveryAddress }}</dd>
+                    </dl>
+                </div></div>
+            </section>
+        </div>
+    </div>
+{% endblock %}

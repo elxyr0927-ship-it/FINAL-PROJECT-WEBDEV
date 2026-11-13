@@ -1,0 +1,39 @@
+{% import 'partials/_form_helpers.html.twig' as form_helpers %}
+
+{{ form_helpers.errorSummary(form) }}
+{{ form_start(form) }}
+    <div class="row g-3">
+        <div class="col-md-6">{{ form_row(form.customerName) }}</div>
+        <div class="col-md-6">{{ form_row(form.customerEmail) }}</div>
+        {% if form.status is defined %}
+            <div class="col-md-6">{{ form_row(form.status) }}</div>
+            <div class="col-md-6">{{ form_row(form.paymentStatus) }}</div>
+        {% endif %}
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row g-3">
+        <div class="col-md-4">{{ form_row(form.service) }}</div>
+        <div class="col-md-4">{{ form_row(form.weight) }}</div>
+        <div class="col-md-4">{{ form_row(form.totalCost) }}</div>
+    </div>
+
+    <hr class="my-4">
+
+    <div class="row g-3">
+        <div class="col-md-6">{{ form_row(form.pickupRegion) }}</div>
+        <div class="col-md-6">{{ form_row(form.deliveryRegion) }}</div>
+        <div class="col-md-6">{{ form_row(form.pickupAddress) }}</div>
+        <div class="col-md-6">{{ form_row(form.deliveryAddress) }}</div>
+    </div>
+
+    <div class="form-actions">
+        <button class="btn btn-primary" type="submit">Save shipment</button>
+        {% if modal|default(false) %}
+            <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+        {% elseif back_route is defined %}
+            <a class="btn btn-outline-secondary" href="{{ path(back_route, back_parameters|default({})) }}">Cancel</a>
+        {% endif %}
+    </div>
+{{ form_end(form) }}

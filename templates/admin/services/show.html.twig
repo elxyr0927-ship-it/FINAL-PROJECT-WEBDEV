@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Service{% endblock %}
+
+{% block body %}
+    <div class="detail-shell">
+        <div class="d-flex flex-wrap justify-content-between align-items-start gap-3 mb-4">
+            <div>
+                <a class="small" href="{{ path('admin_services_index') }}">&larr; Back to services</a>
+                <h1 class="mt-2 mb-2">{{ service.name }}</h1>
+                <span class="badge {{ service.isActive ? 'text-bg-success' : 'text-bg-secondary' }}">{{ service.isActive ? 'Active' : 'Inactive' }}</span>
+            </div>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <a class="btn btn-sm btn-outline-primary" href="{{ path('admin_services_edit', {'id': service.id}) }}">Edit</a>
+                {{ include('admin/services/_delete_form.html.twig') }}
+            </div>
+        </div>
+
+        <div class="row g-3">
+            <section class="col-md-6">
+                <div class="card h-100"><div class="card-body">
+                    <h2 class="h5 mb-3">Service details</h2>
+                    <dl class="detail-list row mb-0">
+                        <dt class="col-5">Description</dt><dd class="col-7">{{ service.description }}</dd>
+                        <dt class="col-5">Capacity</dt><dd class="col-7">{{ service.capacity }}</dd>
+                        <dt class="col-5">Created</dt><dd class="col-7">{{ service.createdAt|date('M j, Y') }}</dd>
+                    </dl>
+                </div></div>
+            </section>
+            <section class="col-md-6">
+                <div class="card h-100"><div class="card-body">
+                    <h2 class="h5 mb-3">Pricing</h2>
+                    <dl class="detail-list row mb-0">
+                        <dt class="col-5">Base price</dt><dd class="col-7">PHP {{ service.basePrice }}</dd>
+                        <dt class="col-5">Price per kg</dt><dd class="col-7">PHP {{ service.pricePerKg }}</dd>
+                        <dt class="col-5">Status</dt><dd class="col-7">{{ service.isActive ? 'Active' : 'Inactive' }}</dd>
+                    </dl>
+                </div></div>
+            </section>
+        </div>
+    </div>
+{% endblock %}

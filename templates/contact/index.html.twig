@@ -1,0 +1,35 @@
+{% extends 'base.html.twig' %}
+
+{% import 'partials/_form_helpers.html.twig' as form_helpers %}
+
+{% block title %}Contact YOCOR Express{% endblock %}
+
+{% block body %}
+    <div class="container py-4 py-md-5">
+        <div class="mx-auto" style="max-width: 720px">
+            <a class="d-inline-flex align-items-center gap-2 mb-4" href="{{ app.user ? path('app_dashboard') : path('app_login') }}">
+                <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                {{ app.user ? 'Back to dashboard' : 'Back to sign in' }}
+            </a>
+            <div class="card">
+                <div class="card-body p-4">
+                    <img class="login-logo mb-3" style="max-width: 180px" src="{{ asset('brand/yocor-logo.svg') }}" alt="YOCOR Express">
+                    <h1 class="mb-2">Send us an inquiry</h1>
+                    <p class="text-muted mb-4">Have a question about a shipment or our services? Send us a message and our team will review it.</p>
+
+                    {{ form_helpers.errorSummary(form) }}
+
+                    {{ form_start(form) }}
+                        {{ form_row(form.name, {attr: {class: 'form-control'}}) }}
+                        {{ form_row(form.email, {attr: {class: 'form-control'}}) }}
+                        {{ form_row(form.subject, {attr: {class: 'form-control'}}) }}
+                        {{ form_row(form.message, {attr: {class: 'form-control'}}) }}
+                        <div class="form-actions">
+                            <button class="btn btn-brand" type="submit">Send inquiry</button>
+                        </div>
+                    {{ form_end(form) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

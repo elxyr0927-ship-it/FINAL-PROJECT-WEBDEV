@@ -1,0 +1,136 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Shipments{% endblock %}
+
+{% block body %}
+    <div class="page-heading d-flex flex-wrap justify-content-between align-items-end gap-3">
+        <div>
+            <h1 class="mb-1">{{ is_granted('ROLE_ADMIN') ? 'All shipments' : 'Shipment records' }}</h1>
+            <p class="text-muted mb-0">{{ is_granted('ROLE_ADMIN') ? 'Search and manage shipment records.' : 'View every shipment. You can only edit or delete the records you created.' }}</p>
+        </div>
+        <a class="btn btn-primary" href="{{ path(new_route) }}" data-bs-toggle="modal" data-bs-target="#createShipmentModal">Create shipment</a>
+    </div>
+
+    <div class="card overflow-hidden">
+        <div class="card-body border-bottom">
+            <form method="get" class="row g-2 align-items-center" role="search">
+                <div class="col-12 col-lg-4">
+                    <label class="visually-hidden" for="shipment-search">Search shipments</label>
+                    <input id="shipment-search" class="form-control" type="search" name="q" value="{{ search }}" placeholder="Tracking code, customer, email, or staff">
+                </div>
+                <div class="col-6 col-lg-2">
+                    <label class="visually-hidden" for="shipment-status">Filter by shipment status</label>
+                    <select id="shipment-status" name="status" class="form-select">
+                        <option value="">All statuses</option>
+                        {% for value, label in status_choices %}
+                            <option value="{{ value }}" {{ status == value ? 'selected' : '' }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-6 col-lg-2">
+                    <label class="visually-hidden" for="shipment-payment">Filter by payment status</label>
+                    <select id="shipment-payment" name="payment" class="form-select">
+                        <option value="">All payment statuses</option>
+                        {% for value, label in payment_choices %}
+                            <option value="{{ value }}" {{ payment_status == value ? 'selected' : '' }}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                {% if is_granted('ROLE_ADMIN') %}
+                    <div class="col-6 col-lg-2">
+                        <label class="visually-hidden" for="shipment-staff">Filter by staff member</label>
+                        <select id="shipment-staff" name="staff" class="form-select">
+                            <option value="">All staff</option>
+                            {% for member in staff_options %}
+                                <option value="{{ member.id }}" {{ staff_id == member.id ? 'selected' : '' }}>{{ member.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                {% endif %}
+                <div class="col-6 col-lg-2">
+                    <label class="visually-hidden" for="shipment-service">Filter by service</label>
+                    <select id="shipment-service" name="service" class="form-select">
+                        <option value="">All services</option>
+                        {% for service in service_options %}
+                            <option value="{{ service.id }}" {{ service_id == service.id ? 'selected' : '' }}>{{ service.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-auto"><button class="btn btn-primary">Search</button></div>
+                {% if search or status or payment_status or staff_id or service_id %}
+                    <div class="col-auto"><a class="btn btn-link" href="{{ path(app.request.attributes.get('_route')) }}">Clear</a></div>
+                {% endif %}
+            </form>
+        </div>
+        <div class="table-responsive">
+            <table class="table align-middle mb-0">
+                <caption class="visually-hidden">Shipment records</caption>
+                <thead>
+                    <tr><th>Tracking</th><th>Customer</th><th>Service</th><th>Created</th><th>Encoded by</th><th>Status</th><th>Payment</th><th class="text-end">Actions</th></tr>
+                </thead>
+                <tbody>
+                {% for booking in bookings %}
+                    <tr>
+                        <td><code>{{ booking.trackingCode }}</code></td>
+                        <td>{{ booking.customerName }}<div class="small text-muted">{{ booking.customerEmail }}</div></td>
+                        <td>{{ booking.service.name }}</td>
+                        <td class="text-nowrap">{{ booking.createdAt|date('M j, Y') }}</td>
+                        <td>
+                            {% if booking.createdBy %}
+                                {% set creator_roles = booking.createdBy.roles %}
+                                {{ booking.createdBy.name }}
+                                {% if booking.createdBy == app.user %}<span class="badge text-bg-primary ms-1">You</span>{% endif %}
+                                <div class="small text-muted">{{ booking.createdBy.username }} &middot; {{ 'ROLE_ADMIN' in creator_roles ? 'Administrator' : ('ROLE_STAFF' in creator_roles ? 'Staff' : 'User') }}</div>
+                            {% else %}
+                                <span class="text-muted">System</span>
+                            {% endif %}
+                        </td>
+                        <td><span class="badge text-bg-secondary">{{ booking.status|capitalize }}</span></td>
+                        <td><span class="badge {{ booking.paymentStatus == 'paid' ? 'text-bg-success' : (booking.paymentStatus == 'under_review' ? 'text-bg-info' : 'text-bg-warning') }}">{{ booking.paymentStatus|replace({'_': ' '})|capitalize }}</span></td>
+                        <td class="text-end text-nowrap">
+                            <a class="btn btn-sm btn-outline-secondary" href="{{ path(show_route, {id: booking.id}) }}" aria-label="View shipment {{ booking.trackingCode }}">View</a>
+                            {% if is_granted('BOOKING_EDIT', booking) %}
+                                <a class="btn btn-sm btn-outline-primary" href="{{ path(edit_route, {id: booking.id}) }}" aria-label="Edit shipment {{ booking.trackingCode }}">Edit</a>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr><td class="text-center text-muted py-4" colspan="8">No shipment records found.</td></tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="modal fade" id="createShipmentModal" tabindex="-1" aria-labelledby="createShipmentModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <div>
+                        <h2 class="modal-title fs-5" id="createShipmentModalLabel">Create shipment</h2>
+                        <p class="text-secondary small mb-0">Enter the customer, service, and route details.</p>
+                    </div>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {{ include('bookings/_form.html.twig', {'form': create_form, 'modal': true}) }}
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    {% include 'bookings/_form_script.html.twig' %}
+    {% if open_modal|default(false) %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                const modal = document.getElementById('createShipmentModal');
+                if (modal && window.bootstrap) {
+                    bootstrap.Modal.getOrCreateInstance(modal).show();
+                }
+            });
+        </script>
+    {% endif %}
+{% endblock %}
